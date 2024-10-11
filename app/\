@@ -1,0 +1,19 @@
+interface Env {
+	AUTH_SERVICE: any;
+}
+export default {
+	async fetch(request, env, ctx): Promise<Response> {
+		let authResult = await env.AUTH_SERVICE.checkCookie(req.headers.get('Cookie'));
+		if (!authResult.authorized) {
+			return new Response('Not authorized', { status: 403 });
+		}
+
+		let user = authResult.user;
+		let profile = await user.getProfile();
+
+		await user.logActivity('You visited the site!');
+		await user.sendNotification(`Thanks for visiting, ${profile.name}!`);
+
+		return new Response(`Hello, ${profile.name}!`);
+	},
+} satisfies ExportedHandler<Env>;
